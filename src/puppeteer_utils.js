@@ -238,7 +238,7 @@ const crawl = async opt => {
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
         try {
-          await page.goto(pageUrl, { waitUntil: "load" });
+          await page.goto(pageUrl, { waitUntil: "load", timeout: 60000 });
         } catch (e) {
           e.message = augmentTimeoutError(e.message, tracker);
           throw e;
