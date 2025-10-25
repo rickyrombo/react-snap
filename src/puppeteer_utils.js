@@ -7,7 +7,7 @@ const fs = require("fs");
 const { createTracker, augmentTimeoutError } = require("./tracker");
 
 const errorToString = jsHandle =>
-  jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
+  jsHandle.evaluate(e => e.toString(), jsHandle);
 
 const objectToJson = jsHandle => jsHandle.jsonValue();
 
