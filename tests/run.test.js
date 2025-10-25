@@ -49,7 +49,7 @@ describe("one page", () => {
     content,
     name
   } = mockFs();
-  beforeAll(() => snapRun(fs, { source }));
+  beforeAll(async () => await snapRun(fs, { source }));
   test("crawls / and saves as index.html to the same folder", () => {
     expect(filesCreated()).toEqual(1);
     expect(name(0)).toEqual(`/${source}/index.html`);
@@ -73,7 +73,7 @@ describe("saveAs png", () => {
     createReadStreamMock,
     createWriteStreamMock
   } = mockFs();
-  beforeAll(() => snapRun(mockedFs, { source, saveAs: "png" }));
+  beforeAll(async () => await snapRun(mockedFs, { source, saveAs: "png" }));
   afterAll(() => writeFileSpy.mockClear());
   test("crawls / and saves as index.png to the same folder", () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
@@ -95,7 +95,7 @@ describe("saveAs jpeg", () => {
     createReadStreamMock,
     createWriteStreamMock
   } = mockFs();
-  beforeAll(() => snapRun(mockedFs, { source, saveAs: "jpeg" }));
+  beforeAll(async () => await snapRun(mockedFs, { source, saveAs: "jpeg" }));
   afterAll(() => writeFileSpy.mockClear());
   test("crawls / and saves as index.png to the same folder", () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
@@ -122,7 +122,7 @@ describe("respects destination", () => {
     content,
     name
   } = mockFs();
-  beforeAll(() => snapRun(fs, { source, destination }));
+  beforeAll(async () => await snapRun(fs, { source, destination }));
   test("crawls / and saves as index.html to destination folder", () => {
     expect(filesCreated()).toEqual(1);
     expect(name(0)).toEqual(`/${destination}/index.html`);
@@ -155,7 +155,7 @@ describe("many pages", () => {
     name,
     names
   } = mockFs();
-  beforeAll(() => snapRun(fs, { source }));
+  beforeAll(async () => await snapRun(fs, { source }));
   test("crawls all links and saves as index.html in separate folders", () => {
     expect(filesCreated()).toEqual(7);
     expect(names()).toEqual(
@@ -191,8 +191,8 @@ describe("possible to disable crawl option", () => {
     filesCreated,
     names
   } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
+  beforeAll(async () =>
+    await snapRun(fs, {
       source,
       crawl: false,
       include: ["/1", "/2/", "/3#test", "/4?test"]
@@ -221,8 +221,8 @@ describe("possible to disable crawl option", () => {
 describe("inlineCss - small file", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
+  beforeAll(async () =>
+    await snapRun(fs, {
       source,
       inlineCss: true,
       include: ["/with-small-css.html"]
@@ -248,7 +248,7 @@ describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, inlineCss: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, inlineCss: true }));
   test("inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style type="text/css">');
@@ -271,7 +271,7 @@ describe("inlineCss - big file", () => {
 describe("inlineCss - partial document", () => {
   const source = "tests/examples/partial";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, inlineCss: true }));
+  beforeAll(async () => await snapRun(fs, { source, inlineCss: true }));
   test("no inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch('<style type="text/css">');
@@ -282,7 +282,7 @@ describe("removeBlobs", () => {
   const source = "tests/examples/other";
   const include = ["/remove-blobs.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("removes blob resources from final html", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch('<link rel="stylesheet" href="blob:');
@@ -293,7 +293,7 @@ describe("http2PushManifest", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, http2PushManifest: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, http2PushManifest: true }));
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual(
@@ -306,8 +306,8 @@ describe("ignoreForPreload", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
+  beforeAll(async () =>
+    await snapRun(fs, {
       source,
       include,
       http2PushManifest: true,
@@ -324,7 +324,7 @@ describe("preconnectThirdParty", () => {
   const source = "tests/examples/other";
   const include = ["/third-party-resource.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
@@ -337,7 +337,7 @@ describe("fixInsertRule", () => {
   const source = "tests/examples/other";
   const include = ["/fix-insert-rule.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("fixes <style> populated with insertRule", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style id="css-in-js">p{color:red}</style>');
@@ -348,8 +348,8 @@ describe("removeStyleTags", () => {
   const source = "tests/examples/other";
   const include = ["/fix-insert-rule.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
+  beforeAll(async () =>
+    await snapRun(fs, {
       source,
       include,
       removeStyleTags: true
@@ -365,7 +365,7 @@ describe("removeScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, removeScriptTags: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, removeScriptTags: true }));
   test("removes all <script>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<script");
@@ -376,7 +376,7 @@ describe("asyncScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, asyncScriptTags: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, asyncScriptTags: true }));
   test("adds async to all external", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<script async src="js/main.js"></script>');
@@ -387,7 +387,7 @@ describe("preloadImages", () => {
   const source = "tests/examples/other";
   const include = ["/with-image.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, preloadImages: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, preloadImages: true }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
@@ -418,7 +418,7 @@ describe("You can not run react-snap twice", () => {
 describe("fixWebpackChunksIssue", () => {
   const source = "tests/examples/cra";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source }));
+  beforeAll(async () => await snapRun(fs, { source }));
   test("creates preload links", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
@@ -441,7 +441,7 @@ describe("link to file", () => {
   const source = "tests/examples/other";
   const include = ["/link-to-file.html"];
   const { fs, names } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("link to non-html file", () => {
     expect(names()).not.toEqual(
       expect.arrayContaining([`/${source}/css/bg.png`])
@@ -456,7 +456,7 @@ describe("snapSaveState", () => {
   const source = "tests/examples/other";
   const include = ["/snap-save-state.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("JSON compatible values", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('window["json"]=["",1,true,null,{}];');
@@ -478,7 +478,7 @@ describe("saves state of form elements changed via JS", () => {
   const source = "tests/examples/other";
   const include = ["/form-elements.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("radio button", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
@@ -499,7 +499,7 @@ describe("cacheAjaxRequests", () => {
   const source = "tests/examples/other";
   const include = ["/ajax-request.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, cacheAjaxRequests: true }));
+  beforeAll(async () => await snapRun(fs, { source, include, cacheAjaxRequests: true }));
   test("saves ajax response", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
@@ -514,7 +514,7 @@ describe("don't crawl localhost links on different port", () => {
   
   const { fs, filesCreated, names } = mockFs();
 
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("only one file is crawled", () => {
     expect(filesCreated()).toEqual(1);
     expect(names()).toEqual(
@@ -531,7 +531,7 @@ describe("svgLinks", () => {
   const source = "tests/examples/other";
   const include = ["/svg.html"];
   const { fs, filesCreated } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("Find SVG Links", () => {
     expect(filesCreated()).toEqual(3);
   });
@@ -541,7 +541,7 @@ describe("history.pushState", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html"];
   const { fs, filesCreated, names } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include }));
+  beforeAll(async () => await snapRun(fs, { source, include }));
   test("in case of browser redirect it creates 2 files", () => {
     expect(filesCreated()).toEqual(3);
     expect(names()).toEqual(
@@ -558,7 +558,7 @@ describe("history.pushState in sub-directory", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html"];
   const { fs, filesCreated, names } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
+  beforeAll(async () => await snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
     expect(filesCreated()).toEqual(3);
     expect(names()).toEqual(
@@ -575,7 +575,7 @@ describe("history.pushState two redirects to the same file", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html", "/history-push-more.html"];
   const { fs, filesCreated, names } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
+  beforeAll(async () => await snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
     expect(filesCreated()).toEqual(4);
     expect(names()).toEqual(

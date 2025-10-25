@@ -87,9 +87,11 @@ const enableLogging = opt => {
     if (response.status() >= 400) {
       let route = "";
       try {
-        route = response._request
-          .headers()
-          .referer.replace(`http://localhost:${options.port}`, "");
+        const request = response.request();
+        const referer = request.headers()['referer'];
+        if (referer) {
+          route = referer.replace(`http://localhost:${options.port}`, "");
+        }
       } catch (e) {}
       console.log(
         `️️️⚠️  warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`
@@ -195,7 +197,7 @@ const crawl = async opt => {
   };
 
   const browser = await puppeteer.launch({
-    headless: options.headless,
+    headless: options.headless !== false ? 'new' : false,
     args: options.puppeteerArgs,
     executablePath: options.puppeteerExecutablePath,
     ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
@@ -220,7 +222,8 @@ const crawl = async opt => {
     if (!shuttingDown && !skipExistingFile) {
       try {
         const page = await browser.newPage();
-        await page._client.send("ServiceWorker.disable");
+        const client = await page.createCDPSession();
+        await client.send("ServiceWorker.disable");
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
         if (options.skipThirdPartyRequests)
@@ -245,7 +248,13 @@ const crawl = async opt => {
         } finally {
           tracker.dispose();
         }
-        if (options.waitFor) await page.waitFor(options.waitFor);
+        if (options.waitFor) {
+          if (typeof options.waitFor === 'number') {
+            await page.waitForTimeout(options.waitFor);
+          } else {
+            await page.waitForSelector(options.waitFor);
+          }
+        }
         if (options.crawl) {
           const links = await getLinks({ page });
           links.forEach(addToQueue);
