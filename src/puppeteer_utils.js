@@ -220,10 +220,16 @@ const crawl = async opt => {
     }
 
     if (!shuttingDown && !skipExistingFile) {
+      let page;
       try {
-        const page = await browser.newPage();
-        const client = await page.createCDPSession();
-        await client.send("ServiceWorker.disable");
+        page = await browser.newPage();
+        let client;
+        try {
+          client = await page.createCDPSession();
+          await client.send("ServiceWorker.disable");
+        } catch (cdpError) {
+          console.log(`⚠️  warning: CDP session failed for ${route}:`, cdpError.message);
+        }
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
         if (options.skipThirdPartyRequests)
@@ -260,13 +266,20 @@ const crawl = async opt => {
           links.forEach(addToQueue);
         }
         afterFetch && (await afterFetch({ page, route, browser, addToQueue }));
-        await page.close();
         console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
           console.log(`🔥  error at ${route}`, e);
         }
         shuttingDown = true;
+      } finally {
+        if (page && !page.isClosed()) {
+          try {
+            await page.close();
+          } catch (closeError) {
+            console.log(`⚠️  warning: failed to close page for ${route}:`, closeError.message);
+          }
+        }
       }
     } else {
       // this message creates a lot of noise
@@ -291,7 +304,11 @@ const crawl = async opt => {
       .toArray(async () => {
         process.removeListener("SIGINT", onSigint);
         process.removeListener("unhandledRejection", onUnhandledRejection);
-        await browser.close();
+        try {
+          await browser.close();
+        } catch (browserCloseError) {
+          console.log(`⚠️  warning: failed to close browser:`, browserCloseError.message);
+        }
         onEnd && onEnd();
         if (shuttingDown) return reject("");
         resolve();

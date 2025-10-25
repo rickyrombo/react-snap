@@ -15,9 +15,14 @@ const createTracker = page => {
   return {
     urls: () => Array.from(requests).map(r => r.url()),
     dispose: () => {
-      page.removeListener("request", onStarted);
-      page.removeListener("requestfinished", onFinished);
-      page.removeListener("requestfailed", onFinished);
+      try {
+        page.off("request", onStarted);
+        page.off("requestfinished", onFinished);
+        page.off("requestfailed", onFinished);
+      } catch (error) {
+        // Page might be closed already, ignore the error
+        console.log(`⚠️  warning: failed to remove event listeners:`, error.message);
+      }
     }
   };
 };

@@ -6,6 +6,7 @@ writeFileSpy.mockImplementation((file, data, cb) => cb());
 
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
+const { beforeAll } = require("@jest/globals");
 const snapRun = (fs, options) =>
   run(
     {
@@ -418,7 +419,8 @@ describe("You can not run react-snap twice", () => {
 describe("fixWebpackChunksIssue", () => {
   const source = "tests/examples/cra";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => await snapRun(fs, { source }));
+  beforeAll(async () =>
+     await snapRun(fs, { source }));
   test("creates preload links", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
